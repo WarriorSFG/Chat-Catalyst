@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+/* Apply font, size, and general look to the popup window */
+body { 
+    /* Defines the popup width */
+    width: 320px; 
+    /* Sets the font */
+    font-family: 'Inter', sans-serif; 
+    /* Removes default browser margins/padding (equivalent to p-0 m-0) */
+    padding: 0;
+    margin: 0;
+    /* Sets the background color (equivalent to bg-gray-100) */
+    background-color: #f3f4f6; 
+}
+
+/* Subtle animation on save button for better feedback */
+#saveButton {
+    transition: all 0.2s ease-in-out;
+    transform: scale(1);
+}
+#saveButton:active {
+    transform: scale(0.98);
+}
+
+/* Custom focus ring color */
+input:focus, select:focus {
+    --tw-ring-color: #10B981 !important; /* Tailwind emerald-500 */
+}
+
+/* Scrollbar styling for modern feel */
+body::-webkit-scrollbar {
+    width: 6px;
+}
+body::-webkit-scrollbar-thumb {
+    background-color: #D1D5DB; /* light gray */
+    border-radius: 3px;
+}
