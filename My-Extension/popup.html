@@ -3,70 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <title>Chat Catalyst Settings</title>
-    <!-- Load Tailwind CSS for utility classes -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
         /* Import Inter font */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         
-        /* Apply overall body styles */
+        /* Apply overall body styles (Enhanced with subtle texture) */
         body { 
             width: 320px; 
-            padding: 12px; 
             font-family: 'Inter', sans-serif; 
-            background-color: #f3f4f6; /* Equivalent to bg-gray-100 for consistency */
+            background-color: transparent; /* Slightly darker grey background */
+            /* Subtle diagonal stripe texture for depth */
+            background-size: 10px 10px;
+            background-position: 0 0, 5px 5px;
             margin: 0;
+            padding: 12px;
         }
 
-        /* Subtle animation on save button for better feedback */
+        /* Container Card (Enhanced with subtle 3D effect) */
+        .card {
+            padding: 24px;
+            background-color: white;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Deeper shadow */
+            border-radius: 12px; /* Slightly more rounded corners */
+            border: 1px solid #d1d5db; /* Lighter border */
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transition for hover effect */
+        }
+        /* Hover Effect for desktop users */
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Header and Divider */
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #059669; /* Thicker, emerald divider */
+            padding-bottom: 16px;
+        }
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        .icon-emerald {
+            height: 24px;
+            width: 24px;
+            color: #059669;
+        }
+
+        /* Labels */
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600; /* Bolder label text */
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        /* Input and Select Fields */
+        .form-field {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px; /* Slightly more rounded field corners */
+            border: 1px solid #d1d5db;
+            box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.07); /* Inner shadow for depth */
+            font-size: 0.875rem;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            margin-top: 4px;
+            background-color: #f9fafb; /* Light background for fields */
+        }
+        .form-field::placeholder {
+            color: #9ca3af;
+        }
+        .form-field:focus {
+            outline: none; /* Remove default outline */
+            border-color: #10B981; /* Main emerald focus */
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3); /* Custom emerald ring */
+        }
+        
+        /* Select Field Arrow Styling */
+        #toneSelect {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 10l5 5 5-5H7z' fill='%236B7280'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em 1.5em;
+        }
+
+        /* Save Button */
         #saveButton {
-            transition: all 0.2s ease-in-out;
-            transform: scale(1);
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px -2px rgba(5, 150, 105, 0.4); /* Emerald shadow for lift */
+            font-size: 0.875rem;
+            font-weight: 700; /* Extra bold text */
+            color: white;
+            background-color: #059669;
+            border: 1px solid #047857; /* Darker border for button */
+            transition: background-color 0.15s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.15s ease; 
+            margin-top: 24px;
+        }
+        #saveButton:hover {
+            background-color: #047857; 
+            box-shadow: 0 6px 15px -3px rgba(5, 150, 105, 0.5);
         }
         #saveButton:active {
-            transform: scale(0.98);
+            transform: translateY(1px); /* Slight press down effect */
+            box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.2);
+        }
+        #saveButton:focus {
+             outline: 3px solid #6ee7b7; /* Light emerald outline for accessibility */
+             outline-offset: 3px;
         }
 
-        /* Custom focus ring color */
-        input:focus, select:focus {
-            --tw-ring-color: #10B981 !important; /* Tailwind emerald-500 */
+        /* Small Text */
+        .small-text {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        /* Status Message (Visually distinct for feedback) */
+        #statusMessage {
+            margin-bottom: 16px;
+            padding: 12px;
+            font-size: 0.875rem;
+            border-radius: 6px;
+            font-weight: 500;
+            border-left: 5px solid; /* Solid left bar for emphasis */
+            background-color: #ecfdf5; /* Light green background */
+            color: #065f46; /* Dark green text */
+            border-color: #10B981; /* Emerald border */
+            transition: opacity 0.3s;
         }
 
-        /* Scrollbar styling for modern feel */
-        body::-webkit-scrollbar {
-            width: 6px;
-        }
-        body::-webkit-scrollbar-thumb {
-            background-color: #D1D5DB; /* light gray */
-            border-radius: 3px;
-        }
     </style>
 </head>
 <body>
-    <div class="p-6 bg-white shadow-xl rounded-lg border border-gray-200">
+    <div class="card">
         
         <!-- Header -->
-        <div class="flex items-center space-x-2 mb-6 border-b pb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="header-content">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon-emerald" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v10m0 0l-3-3m3 3l3-3"/>
             </svg>
-            <h2 class="text-xl font-bold text-gray-800">Chat Catalyst Setup</h2>
+            <h2 class="header-title">Chat Catalyst Setup</h2>
         </div>
         
         <!-- Status Message -->
-        <div id="statusMessage" class="mb-4 p-3 text-sm rounded-lg border hidden transition duration-300"></div>
+        <div id="statusMessage" style="display: none;"></div>
         
         <!-- API Key Input -->
-        <label for="apiKey" class="block text-sm font-medium text-gray-700 mb-1">Gemini API Key</label>
+        <label for="apiKey">Gemini API Key</label>
         <input type="password" id="apiKey" placeholder="Paste your key here" 
-               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 text-sm transition duration-150 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-gray-400"
-               autocomplete="off">
-        <p class="text-xs text-gray-500 mt-1">Stored securely in your browser's local storage.</p>
+               class="form-field" autocomplete="off">
+        <p class="small-text">Stored securely in your browser's local storage.</p>
         
         <!-- Tone Selector -->
-        <label for="toneSelect" class="block text-sm font-medium text-gray-700 mt-4 mb-1">Default Writing Tone</label>
-        <select id="toneSelect" 
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 text-sm transition duration-150 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none bg-white">
+        <label for="toneSelect" style="margin-top: 16px;">Default Writing Tone</label>
+        <select id="toneSelect" class="form-field">
             <option value="professional">💼 Professional (Work)</option>
             <option value="academic">🎓 Academic (Formal)</option>
             <option value="casual">💬 Casual (Friendly)</option>
@@ -74,8 +179,7 @@
         </select>
         
         <!-- Save Button -->
-        <button id="saveButton" 
-                class="mt-6 w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150">
+        <button id="saveButton">
             <span id="saveButtonText">Save Settings</span>
         </button>
     </div>
