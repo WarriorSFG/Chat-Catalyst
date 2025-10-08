@@ -1,25 +1,25 @@
 {
   "manifest_version": 3,
   "name": "Chat Catalyst AI Assistant",
-  "version": "1.0",
+  "version": "0.0.1",
   "description": "Real-time, context-aware writing assistance for WhatsApp Web using the Gemini API.",
   "icons": {
-    "48": "icon.png" 
+    "48": "icon.png"
   },
   "permissions": [
-    "storage" 
+    "storage"
   ],
   "host_permissions": [
-    "*://web.whatsapp.com/*" 
+    "*://web.whatsapp.com/*"
   ],
   "action": {
-    "default_popup": "popup.html", 
+    "default_popup": "popup.html",
     "default_icon": "icon.png"
   },
   "content_scripts": [
     {
       "matches": ["*://web.whatsapp.com/*"],
-      "js": ["content.js"] 
+      "js": ["content.js"]
     }
   ]
 }

@@ -1,3 +1,12 @@
+// popup.js
+
+// --- IMPORT THE CRYPTO UTILITIES ---
+// This now correctly points to the separate cryptoUtils.js file.
+import {
+    encrypt,
+    decrypt
+} from './cryptoUtils.js';
+
 // Function to show a temporary status message in the popup UI
 function showStatus(message, isSuccess = true) {
     const statusDiv = document.getElementById('statusMessage');
@@ -31,40 +40,69 @@ function saveSettings() {
         showStatus('Error: API Key cannot be empty.', false);
         return;
     }
-    
-    // NOTE: The Problem Statement requires the key to be encrypted before storing. 
-    // For this prototype, we store it as plain text. Implement AES/RSA encryption here for final submission.
 
-    chrome.storage.local.set({
-        'geminiApiKey': apiKey,
-        'writingTone': tone
-    }, () => {
-        // Notify the user that settings have been saved
-        showStatus('Settings Saved Successfully!');
-        
-        // Temporarily change button text for extra feedback
-        saveButtonText.textContent = 'Saved!';
-        setTimeout(() => {
-            saveButtonText.textContent = 'Save Settings';
-        }, 1500);
+    // 1. Encrypt the API Key using the imported utility function
+    encrypt(apiKey).then(({
+        ciphertext,
+        iv
+    }) => {
+        // 2. Store the encrypted API key (ciphertext), the IV, and the tone.
+        chrome.storage.local.set({
+            'geminiApiKey': ciphertext,
+            'geminiApiKeyIV': iv,
+            'writingTone': tone // Store tone separately (it doesn't need encryption)
+        }, () => {
+            // 3. Provide successful feedback
+            showStatus('Settings Saved Successfully (Encrypted)!');
+
+            // Temporarily change button text for extra feedback
+            saveButtonText.textContent = 'Saved!';
+            setTimeout(() => {
+                saveButtonText.textContent = 'Save Settings';
+            }, 1500);
+        });
+    }).catch(error => {
+        console.error("Encryption failed:", error);
+        showStatus('Error: Failed to encrypt key.', false);
     });
 }
 
 // Function to load settings from chrome.storage.local when the popup opens
 function loadSettings() {
-    chrome.storage.local.get(['geminiApiKey', 'writingTone'], (items) => {
-        if (items.geminiApiKey) {
-            // Set the value back into the input field (masked)
-            document.getElementById('apiKey').value = items.geminiApiKey;
-        }
+    // Look for the encrypted key parts and the tone
+    chrome.storage.local.get(['geminiApiKey', 'geminiApiKeyIV', 'writingTone'], (items) => {
+
+        // Load Tone first (if available)
         if (items.writingTone) {
-            // Set the selected option in the dropdown
             document.getElementById('toneSelect').value = items.writingTone;
         }
-        
-        // Show a temporary success message if we loaded a saved key
-        if (items.geminiApiKey) {
-            showStatus('Settings loaded from storage.');
+
+        // Check for encrypted API Key parts
+        const ciphertext = items.geminiApiKey;
+        const iv = items.geminiApiKeyIV;
+
+        if (ciphertext && iv) {
+            // 1. Decrypt the API Key
+            decrypt(ciphertext, iv)
+                .then(decryptedKey => {
+                    if (decryptedKey) {
+                        // 2. Display the decrypted key in the input field
+                        document.getElementById('apiKey').value = decryptedKey;
+
+                        // 3. Show success message
+                        showStatus('Settings loaded and key decrypted.');
+                    } else {
+                        // Decryption failed 
+                        showStatus('Error: Could not decrypt stored key.', false);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error during decryption:", error);
+                    showStatus('Error: Failed to retrieve stored key.', false);
+                });
+        } else {
+            // Show a generic message if no settings are saved
+            showStatus('Enter your Gemini API Key to get started.', true);
         }
     });
 }
@@ -73,7 +111,7 @@ function loadSettings() {
 // 1. Load settings when the popup DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
-    
+
     // 2. Save settings when the button is clicked
     document.getElementById('saveButton').addEventListener('click', saveSettings);
 });
