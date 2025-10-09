@@ -27,7 +27,6 @@
         "https://web.whatsapp.com/*"
       ],
       "js": [
-        "buttonInjector.js",
         "content.js"
       ]
     }
