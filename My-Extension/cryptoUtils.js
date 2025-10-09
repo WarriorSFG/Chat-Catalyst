@@ -2,7 +2,8 @@
 
 // Generate a random 12-byte IV for encryption
 function generateIv() {
-    return window.crypto.getRandomValues(new Uint8Array(12));
+    // REMOVED 'window.' prefix to work in service workers
+    return crypto.getRandomValues(new Uint8Array(12));
 }
 
 // Convert ArrayBuffer to Base64 string
@@ -13,12 +14,14 @@ function arrayBufferToBase64(buffer) {
     for (let i = 0; i < len; i++) {
         binary += String.fromCharCode(bytes[i]);
     }
+    // REMOVED 'window.' prefix
     return btoa(binary);
 }
 
 // Convert Base64 string to ArrayBuffer
 function base64ToArrayBuffer(base64) {
-    const binary_string = window.atob(base64);
+    // REMOVED 'window.' prefix
+    const binary_string = atob(base64);
     const len = binary_string.length;
     const bytes = new Uint8Array(len);
     for (let i = 0; i < len; i++) {
@@ -29,13 +32,12 @@ function base64ToArrayBuffer(base64) {
 
 // Use a fixed key derived from the extension ID for simplicity and consistency
 async function getKey(keyMaterial) {
-    // The key material must be 32 bytes for AES-256.
-    const keyBytes = new TextEncoder().encode(keyMaterial.slice(0, 32));
-    const key = await window.crypto.subtle.importKey(
+    const keyBytes = new TextEncoder().encode(keyMaterial);
+    // REMOVED 'window.' prefix
+    const key = await crypto.subtle.importKey(
         'raw',
-        keyBytes, {
-            name: 'AES-GCM'
-        },
+        keyBytes,
+        { name: 'AES-GCM' },
         false,
         ['encrypt', 'decrypt']
     );
@@ -47,15 +49,14 @@ const cryptoUtils = {
     // Encrypts text and returns ciphertext and IV
     encrypt: async (text) => {
         const iv = generateIv();
-        // Note: chrome.runtime.id is guaranteed to be stable for an installed extension
-        const keyMaterial = chrome.runtime.id;
+        // Use extension ID for a stable key source
+        const keyMaterial = chrome.runtime.id.substring(0, 32);
         const key = await getKey(keyMaterial);
         const encoded = new TextEncoder().encode(text);
-
-        const ciphertext = await window.crypto.subtle.encrypt({
-                name: "AES-GCM",
-                iv: iv
-            },
+        
+        // REMOVED 'window.' prefix
+        const ciphertext = await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv: iv },
             key,
             encoded
         );
@@ -69,15 +70,14 @@ const cryptoUtils = {
     // Decrypts ciphertext using IV
     decrypt: async (ciphertext, iv) => {
         try {
-            const keyMaterial = chrome.runtime.id;
+            const keyMaterial = chrome.runtime.id.substring(0, 32);
             const key = await getKey(keyMaterial);
             const ivBuffer = base64ToArrayBuffer(iv);
             const ciphertextBuffer = base64ToArrayBuffer(ciphertext);
-
-            const plaintext = await window.crypto.subtle.decrypt({
-                    name: "AES-GCM",
-                    iv: ivBuffer
-                },
+            
+            // REMOVED 'window.' prefix
+            const plaintext = await crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: ivBuffer },
                 key,
                 ciphertextBuffer
             );
@@ -89,6 +89,6 @@ const cryptoUtils = {
     }
 }
 
-// EXPORT STATEMENTS: Required for popup.js to import the functions using ES Modules.
 export const encrypt = cryptoUtils.encrypt;
 export const decrypt = cryptoUtils.decrypt;
+

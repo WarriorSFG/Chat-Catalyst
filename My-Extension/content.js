@@ -1,7 +1,7 @@
 // content.js
 
 // --- CONFIGURATION ---
-const DEBOUNCE_TIME = 500; // Time in ms before triggering AI suggestion
+const DEBOUNCE_TIME = 300; // Time in ms before triggering AI suggestion
 // REFINED SELECTOR: This is more specific and stable.
 const CHAT_INPUT_SELECTOR = '#main div[role="textbox"][contenteditable="true"]';
 const CHAT_MESSAGE_SELECTOR = 'div.message-in, div.message-out';
