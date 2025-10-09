@@ -244,7 +244,8 @@ function injectAiButton() {
         return;
     }
 
-    const buttonContainer = micButton.parentElement;
+    const buttonContainer = micButton.parentElement.parentElement;
+    console.log(buttonContainer);
     if (!buttonContainer) {
         return;
     }
@@ -316,7 +317,7 @@ function injectAiButton() {
     });
     
     // MODIFIED: This is the correct way to insert the button next to the mic button.
-    buttonContainer.insertBefore(aiButton, micButton.parentElement);
+    buttonContainer.prepend(aiButton);
 }
 
 
