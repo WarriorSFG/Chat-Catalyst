@@ -8,6 +8,7 @@ const AI_BUTTON_ID = 'chat-catalyst-ai-button';
  * Finds the microphone button's container and injects our custom AI button.
  * This function is designed to be re-run safely if the UI updates.
  */
+
 function injectAiButton() {
     console.log("Attempting to inject Chat Catalyst AI button...");
     // Check if our button already exists to avoid duplicates
@@ -21,6 +22,7 @@ function injectAiButton() {
     if (!micButton) {
         console.log("Microphone button not found."); // If the mic button isn't on the page yet, do nothing.
         setTimeout(injectAiButton, 5000); // Retry after 5 seconds
+        return;
     }
 
     // 2. Find its direct parent container. This is where we'll insert our button.
