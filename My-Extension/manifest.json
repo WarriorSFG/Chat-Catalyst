@@ -1,35 +1,36 @@
 {
-    "manifest_version": 3,
-    "name": "Chat Catalyst AI Assistant",
-    "version": "0.0.1",
-    "description": "Real-time, context-aware writing assistance for WhatsApp Web using the Gemini API.",
-    "icons": {
-        "48": "icon.png"
-    },
-    "permissions": [
-        "storage"
-    ],
-    "host_permissions": [
-        "*://web.whatsapp.com/*",
-        "https://generativelanguage.googleapis.com/*"
-    ],
-    "action": {
-        "default_popup": "popup.html",
-        "default_icon": "icon.png"
-    },
-    "background": {
-        "service_worker": "background.js",
-        "type": "module"
-    },
-    "content_scripts": [
-        {
-            "matches": [
-                "*://web.whatsapp.com/*"
-            ],
-            "js": [
-                "content.js"
-            ]
-        }
-    ]
+  "manifest_version": 3,
+  "name": "Chat Catalyst AI Assistant",
+  "version": "0.0.1",
+  "description": "Real-time, context-aware writing assistance for WhatsApp Web using the Gemini API.",
+  "icons": {
+    "48": "icon.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://web.whatsapp.com/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://web.whatsapp.com/*"
+      ],
+      "js": [
+        "buttonInjector.js",
+        "content.js"
+      ]
+    }
+  ]
 }
 
