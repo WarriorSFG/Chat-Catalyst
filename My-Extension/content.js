@@ -2,24 +2,26 @@
 
 // --- CONFIGURATION ---
 const DEBOUNCE_TIME = 300; // Time in ms before triggering AI suggestion
-// REFINED SELECTOR: This is more specific and stable.
 const CHAT_INPUT_SELECTOR = '#main div[role="textbox"][contenteditable="true"]';
+
 const CHAT_MESSAGE_SELECTOR = 'div.message-in, div.message-out';
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
+const MIC_BUTTON_SELECTOR = '[aria-label="Send"]';
+const AI_BUTTON_ID = 'chat-catalyst-ai-button';
+const SuggestionsEnabled = false; // Set to false to disable suggestions
 
+let ChatInput = ""; // Global variable to hold the rewritten text
 let typingTimer;
 let currentDraft = "";
 let currentSuggestion = "";
-let suggestionElement = null; // Element to hold the ghost text
+let suggestionElement = null;
 let isSuggestionDisplayed = false;
-// CORRECTED: Reverted to the correct state initialization.
-// The API key is received via a message from the popup after decryption.
 let apiState = {
     apiKey: null,
     writingTone: 'professional'
 };
 
-// --- API CALL LOGGING ---
+// --- API FUNCTIONS (Unchanged) ---
 async function fetchSuggestion(draft, history, tone, apiKey) {
     if (!apiKey) {
         console.error("DEBUG: API call failed. Reason: API Key is not set.");
@@ -28,7 +30,6 @@ async function fetchSuggestion(draft, history, tone, apiKey) {
 
     const contextText = history.map(msg => `${msg.role}: ${msg.text}`).join('\n');
     
-    // --- UPDATED & STRICTER PROMPT ---
     const systemPrompt = `You are an autocomplete writing assistant. Your one and only job is to complete the user's current sentence.
 - Analyze the conversation history for context.
 - The user's desired tone is '${tone}'.
@@ -64,6 +65,48 @@ User's Draft: "${draft}"`;
     }
 }
 
+async function ReWriteSentence(draft, history, tone, apiKey) {
+    if (!apiKey) {
+        console.error("DEBUG: API call failed. Reason: API Key is not set.");
+        return "ERROR: API Key not set.";
+    }
+
+    const contextText = history.map(msg => `${msg.role}: ${msg.text}`).join('\n');
+    
+    const systemPrompt = `You are a rewriting assistant. Your one and only job is to rewrite the user's current sentence in a more refined, structured and grammatically correct way in the '${tone}' tone.
+- Analyze the conversation history for context.
+- Rephrase the user's text. Complete it if needed.
+- Provide ONLY the final, rewritten sentence and nothing else.
+- The first word of your response MUST be the first word of the user's original text. For example, if the user's text is "hello how are", your response must start with "hello".
+
+Context:
+---
+${contextText}
+---
+User's sentence: "${draft}"`;
+
+    const payload = {
+        contents: [{ parts: [{ text: "Rewrite the sentence in more refined, structured and grammatically correct way." }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+    };
+    
+    try {
+        const response = await fetch(GEMINI_API_URL + `?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        const result = await response.json();
+        const suggestionText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+        console.log("DEBUG: Raw suggestion from API:", `"${suggestionText}"`);
+        return suggestionText;
+    } catch (error) {
+        console.error("Gemini API Error:", error);
+        return "Error fetching suggestion.";
+    }
+}
+
 function getConversationHistory() {
     const messages = document.querySelectorAll(CHAT_MESSAGE_SELECTOR);
     const history = [];
@@ -79,7 +122,7 @@ function getConversationHistory() {
     return history.slice(-10);
 }
 
-// --- DOM MANIPULATION ---
+// --- DOM MANIPULATION (Mostly Unchanged) ---
 function repositionSuggestionElement(inputElement) {
     if (!suggestionElement) return;
     const inputRect = inputElement.getBoundingClientRect();
@@ -135,65 +178,159 @@ function updateSuggestionDOM(inputElement) {
     }
 }
 
-
-// --- MAIN EVENT HANDLERS ---
+// --- EVENT HANDLERS (Unchanged) ---
 function handleInput(event) {
-    console.log("Chat Catalyst: handleInput triggered!");
-    
     currentDraft = event.target.textContent.trim();
     clearTimeout(typingTimer);
     updateSuggestionDOM(event.target);
 
     if (currentDraft.length < 3) return;
 
-    console.log("DEBUG: Draft is long enough. Setting timeout for API call...");
-
     typingTimer = setTimeout(async () => {
-        console.log("DEBUG: Timeout finished. Fetching suggestion...");
         const history = getConversationHistory();
-        const suggestion = await fetchSuggestion(currentDraft, history, apiState.writingTone, apiState.apiKey);
+        const suggestion = SuggestionsEnabled ? await fetchSuggestion(currentDraft, history, apiState.writingTone, apiState.apiKey) : "";
         
         if (event.target.textContent.trim() === currentDraft) {
             currentSuggestion = suggestion;
             updateSuggestionDOM(event.target);
-        } else {
-            console.log("DEBUG: Draft changed while waiting for API. Suggestion ignored.");
         }
     }, DEBOUNCE_TIME);
 }
 
 function handleKeydown(event) {
     if (event.key === 'Tab' && isSuggestionDisplayed && currentSuggestion) {
-        console.log("Chat Catalyst: Tab pressed to accept suggestion.");
-        event.preventDefault(); // Stop the default Tab action
-
-        // 1. Calculate the part of the suggestion that the user hasn't typed yet.
-        // For example, if draft is "how are" and suggestion is "how are you",
-        // this will be " you".
+        event.preventDefault();
         const completionText = currentSuggestion.substring(currentDraft.length);
-
-        // 2. Insert ONLY the new text at the current cursor position.
         document.execCommand('insertText', false, completionText);
-
-        // 3. Clean up the state.
         currentSuggestion = "";
         isSuggestionDisplayed = false;
-        updateSuggestionDOM(event.target); // This will clear the ghost text
+        updateSuggestionDOM(event.target);
     }
+}
+
+function EditInputText(Text) {
+    // 1. Select the main editable element itself, not the inner span
+    const editor = document.querySelector('#main [role="textbox"]');
+
+    // 2. Check if the editor was found
+    if (editor) {
+        // 3. Set focus on the editor
+        editor.focus();
+        // 4. Execute commands to replace the text
+        document.execCommand('selectAll', false, null); // Selects all current text
+        document.execCommand('insertText', false, Text); // Replaces the selection with "hello"
+    } else {
+        console.log("The editor element was not found!");
+        setTimeout(() => EditInputText(Text), 1000); // Retry after 1 second
+        return null;
+    }
+}
+
+if(ChatInput.length>0){
+    EditInputText(ChatInput);
+    ChatInput="";
+}
+
+// --- MODIFIED: Button Injection Logic ---
+function injectAiButton() {
+    // This check is important to prevent adding multiple buttons.
+    if (document.getElementById(AI_BUTTON_ID)) {
+        return;
+    }
+
+    const micButton = document.querySelector(MIC_BUTTON_SELECTOR);
+    if (!micButton) {
+        // If the anchor isn't found, we just exit. The observer will call this function again on the next DOM change.
+        return;
+    }
+
+    const buttonContainer = micButton.parentElement;
+    if (!buttonContainer) {
+        return;
+    }
+    
+    console.log("Chat Catalyst: Injecting AI button...");
+
+    const aiButton = document.createElement('button');
+    aiButton.id = AI_BUTTON_ID;
+    aiButton.className = micButton.className;
+    aiButton.setAttribute('aria-label', 'Chat Catalyst AI');
+    aiButton.innerHTML = `
+        <span aria-hidden="true" data-icon="sparkles">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="geminiGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#F3A37A"/>
+                        <stop offset="0.25" stop-color="#F3D65A"/>
+                        <stop offset="0.5" stop-color="#A5D6A7"/>
+                        <stop offset="0.75" stop-color="#4C8BF5"/>
+                        <stop offset="1" stop-color="#C58AF9"/>
+                    </linearGradient>
+                </defs>
+                <path d="M12 0C10.5 5.5 5.5 10.5 0 12C5.5 13.5 10.5 18.5 12 24C13.5 18.5 18.5 13.5 24 12C18.5 10.5 13.5 5.5 12 0Z" fill="url(#geminiGradient)"/>
+            </svg>
+        </span>
+    `;
+
+    aiButton.addEventListener('click', async () => {
+        console.log("Chat Catalyst AI button clicked!");
+        const inputElement = document.querySelector(CHAT_INPUT_SELECTOR);
+        if (!inputElement) {
+            console.error("Rewrite Error: Could not find the chat input box.");
+            return;
+        }
+
+        const textToRewrite = inputElement.textContent.trim();
+        if (!textToRewrite) {
+            console.log("Rewrite Info: Text box is empty. Nothing to rewrite.");
+            return;
+        }
+
+        console.log(`Attempting to rewrite: "${textToRewrite}"`);
+        inputElement.textContent = 'Rewriting...';
+
+        try {
+            const rewritten = await ReWriteSentence(textToRewrite, getConversationHistory(), apiState.writingTone, apiState.apiKey);
+
+            if (rewritten && !rewritten.toLowerCase().includes("error")) {
+                //inputElement.textContent = rewritten;
+                console.log(`API response received: "${rewritten}"`);
+                //EditInputText(rewritten);
+                //ChatInput = rewritten;
+                const editor = document.querySelector('#main [role="textbox"]');
+                if (editor) {
+                    editor.focus();
+                    document.execCommand('selectAll', false, null);
+                    document.execCommand('insertText', false, textToRewrite.split(" ")[0]); // Insert first word to retain cursor position
+                    document.execCommand('selectAll', false, null);
+                    document.execCommand('insertText', false, " " +rewritten.split(' ').slice(1).join(' ')); // Insert rest of the text
+                }
+            } else {
+                console.error("Rewrite Error: API returned an error or empty response.");
+                inputElement.textContent = textToRewrite;
+            }
+        } catch (error) {
+            console.error("A critical error occurred during the rewrite API call:", error);
+            inputElement.textContent = textToRewrite;
+        }
+    });
+    
+    // MODIFIED: This is the correct way to insert the button next to the mic button.
+    buttonContainer.insertBefore(aiButton, micButton);
 }
 
 
 // --- INITIALIZATION ---
-function initializeAssistant() {
-    console.log("Chat Catalyst: Observer initialized. Waiting for input field...");
+
+// MODIFIED: The observer now handles both initializing the assistant AND injecting the button.
+function initializeUI() {
+    console.log("Chat Catalyst: Observer initialized. Watching for UI elements...");
     const observer = new MutationObserver((mutations, obs) => {
+        // --- Part 1: Handle the text input field for suggestions ---
         const inputElement = document.querySelector(CHAT_INPUT_SELECTOR);
-
         if (inputElement && !inputElement.dataset.assistantInitialized) {
-            console.log("Chat Catalyst: Input field found! Attaching listeners.", inputElement);
-
+            console.log("Chat Catalyst: Input field found! Attaching listeners.");
             inputElement.addEventListener('input', handleInput);
-            // CRITICAL FIX: The 'true' at the end enables event capturing.
             inputElement.addEventListener('keydown', handleKeydown, true);
             inputElement.dataset.assistantInitialized = 'true';
 
@@ -201,6 +338,11 @@ function initializeAssistant() {
                 suggestionElement = createSuggestionElement();
             }
         }
+
+        // --- Part 2: Handle injecting the AI rewrite button ---
+        // We call injectAiButton on every DOM change. 
+        // The function itself is smart enough not to add a second button if one already exists.
+        injectAiButton();
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
@@ -214,7 +356,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ status: "success" });
         return true;
     }
-})
+});
 
 function requestInitialSettings() {
     console.log("Chat Catalyst: Requesting initial settings from background script...");
@@ -234,8 +376,6 @@ function requestInitialSettings() {
     });
 }
 
-
-
-requestInitialSettings(); // Request settings as soon as the script loads
-initializeAssistant();    // Initialize the assistant to start observing the DOM
-
+// --- SCRIPT START ---
+requestInitialSettings(); 
+initializeUI(); // MODIFIED: Call the single, unified initializer.
