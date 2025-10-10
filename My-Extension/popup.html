@@ -4,37 +4,41 @@
 <head>
     <meta charset="UTF-8">
     <title>Chat Catalyst Settings</title>
-
+    <link rel="stylesheet" href="styles.css">
     <style>
         /* Import Inter font */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        /* Apply overall body styles */
+        /* Apply overall body styles with a subtle gradient */
         body {
             width: 320px;
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            /* NEW: Subtle gradient background */
+            background: linear-gradient(170deg, #f7f9fc 0%, #f3f4f6 100%);
             margin: 0;
             padding: 12px;
         }
 
-        /* Container Card */
+        /* Container Card with enhanced shadow */
         .card {
             padding: 24px;
             background-color: white;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            /* NEW: Softer, more pronounced shadow */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             border-radius: 12px;
-            border: 1px solid #d1d5db;
+            border: 1px solid #e5e7eb;
         }
 
-        /* Header and Divider */
+        /* Header with a gradient divider */
         .header-content {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-bottom: 24px;
-            border-bottom: 2px solid #059669;
-            /* Emerald divider */
+            /* NEW: Gradient border */
+            border-bottom: 2px solid;
+            border-image-slice: 1;
+            border-image-source: linear-gradient(to right, #10B981, rgba(16, 185, 129, 0));
             padding-bottom: 16px;
         }
 
@@ -61,15 +65,15 @@
 
         /* Input and Select Fields */
         .form-field {
-            box-sizing: border-box; /* Ensures padding doesn't affect width */
+            box-sizing: border-box;
             display: block;
             width: 100%;
             padding: 12px;
             border-radius: 8px;
             border: 1px solid #d1d5db;
-            box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.07);
+            box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.05);
             font-size: 0.875rem;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
             margin-top: 4px;
             background-color: #f9fafb;
         }
@@ -81,7 +85,8 @@
         .form-field:focus {
             outline: none;
             border-color: #10B981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+            /* NEW: Softer glow effect */
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25), inset 0 1px 3px 0 rgba(0, 0, 0, 0.05);
         }
 
         /* Select Field Arrow Styling */
@@ -95,32 +100,49 @@
             background-size: 1.5em 1.5em;
         }
 
-        /* Save Button */
+        /* --- Save Button Overhaul --- */
         #saveButton {
             cursor: pointer;
             width: 100%;
             display: flex;
+            align-items: center;
             justify-content: center;
+            gap: 8px;
+            /* Space between icon and text */
             padding: 12px 16px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px -2px rgba(5, 150, 105, 0.4);
             font-size: 0.875rem;
             font-weight: 700;
             color: white;
-            background-color: #059669;
-            border: 1px solid #047857;
-            transition: background-color 0.15s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.15s ease;
+            border: none;
             margin-top: 24px;
+
+            /* NEW: Gradient Background and setup for animation */
+            background-image: linear-gradient(to right, #10B981 0%, #059669 50%, #10B981 100%);
+            background-size: 200% auto;
+            background-position: right center;
+            /* Start from the right */
+
+            /* NEW: Enhanced transitions for all properties */
+            transition: background-position 0.3s cubic-bezier(.25, .8, .25, 1),
+                transform 0.2s cubic-bezier(.25, .8, .25, 1),
+                box-shadow 0.3s cubic-bezier(.25, .8, .25, 1);
+
+            box-shadow: 0 4px 10px -2px rgba(5, 150, 105, 0.4);
         }
 
         #saveButton:hover {
-            background-color: #047857;
-            box-shadow: 0 6px 15px -3px rgba(5, 150, 105, 0.5);
+            /* NEW: Animate gradient to the left and lift the button */
+            background-position: left center;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(5, 150, 105, 0.5);
         }
 
         #saveButton:active {
-            transform: translateY(1px);
+            /* NEW: Press-down effect */
+            transform: translateY(0px);
             box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
         }
 
         #saveButton:focus {
@@ -132,7 +154,7 @@
         .small-text {
             font-size: 0.75rem;
             color: #6b7280;
-            margin-top: 4px;
+            margin-top: 6px;
         }
 
         /* Status Message */
@@ -154,23 +176,20 @@
 <body>
     <div class="card">
 
-        <!-- Header -->
         <div class="header-content">
-            <svg xmlns="http://www.w3.org/2000/svg" class="icon-emerald" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon-emerald" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v10m0 0l-3-3m3 3l3-3" />
             </svg>
             <h2 class="header-title">Chat Catalyst Setup</h2>
         </div>
 
-        <!-- Status Message -->
         <div id="statusMessage" style="display: none;"></div>
 
-        <!-- API Key Input -->
         <label for="apiKey">Gemini API Key</label>
         <input type="password" id="apiKey" placeholder="Paste your key here" class="form-field" autocomplete="off">
         <p class="small-text">Your key is encrypted and stored locally.</p>
 
-        <!-- Tone Selector -->
         <label for="toneSelect" style="margin-top: 16px;">Default Writing Tone</label>
         <select id="toneSelect" class="form-field">
             <option value="professional">💼 Professional (Work)</option>
@@ -179,13 +198,17 @@
             <option value="empathetic">❤️ Empathetic (Sensitive)</option>
         </select>
 
-        <!-- Save Button -->
         <button id="saveButton">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
             <span id="saveButtonText">Save Settings</span>
         </button>
     </div>
 
-    <!-- This is the critical part: loading popup.js as a module -->
     <script type="module" src="popup.js"></script>
 </body>
 

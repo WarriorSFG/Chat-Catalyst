@@ -76,7 +76,7 @@ function saveSettings() {
             sendSettingsToContentScript(apiKey, tone);
 
             // 4. Provide successful feedback
-            showStatus('Settings Saved Successfully (Encrypted)!');
+            showStatus('Settings Saved Successfully!');
             saveButtonText.textContent = 'Saved!';
             setTimeout(() => {
                 saveButtonText.textContent = 'Save Settings';
@@ -104,7 +104,6 @@ function loadSettings() {
                 .then(decryptedKey => {
                     if (decryptedKey) {
                         document.getElementById('apiKey').value = decryptedKey;
-                        showStatus('Settings loaded and key decrypted.');
                         // Also send settings to content script on load
                         sendSettingsToContentScript(decryptedKey, items.writingTone || 'professional');
                     } else {

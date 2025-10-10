@@ -8,14 +8,36 @@ const CHAT_MESSAGE_SELECTOR = 'div.message-in, div.message-out';
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
 const MIC_BUTTON_SELECTOR = '[aria-label="Send"]';
 const AI_BUTTON_ID = 'chat-catalyst-ai-button';
-const SuggestionsEnabled = false; // Set to false to disable suggestions
+const SuggestionsEnabled = true; // Set to false to disable suggestions
+
+// --- NEW SVG CONSTANTS ---
+
+const INITIAL_SPARKLES_SVG = `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="geminiGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#F3A37A"/> <stop offset="0.25" stop-color="#F3D65A"/>
+                <stop offset="0.5" stop-color="#A5D6A7"/> <stop offset="0.75" stop-color="#4C8BF5"/>
+                <stop offset="1" stop-color="#C58AF9"/>
+            </linearGradient>
+        </defs>
+        <path d="M12 0C10.5 5.5 5.5 10.5 0 12C5.5 13.5 10.5 18.5 12 24C13.5 18.5 18.5 13.5 24 12C18.5 10.5 13.5 5.5 12 0Z" fill="url(#geminiGradient)"/>
+    </svg>`;
+
+const LOADING_SPINNER_SVG = `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2.99902C16.9706 2.99902 21 7.02846 21 11.999C21 16.9696 16.9706 20.999 12 20.999C7.02944 20.999 3 16.9696 3 11.999C3 7.02846 7.02944 2.99902 12 2.99902ZM12 1.49902C6.20101 1.49902 1.5 6.20003 1.5 11.999C1.5 17.798 6.20101 22.499 12 22.499C17.799 22.499 22.5 17.798 22.5 11.999C22.5 6.20003 17.799 1.49902 12 1.49902Z" fill="#8696a0" fill-opacity="0.3"/>
+        <path d="M12 1.49902C11.6953 1.49902 11.4116 1.65825 11.2588 1.91402C6.91899 9.04018 7.37341 17.632 12.9304 22.1009C13.2081 22.321 13.5855 22.3486 13.8906 22.1695C14.1957 21.9904 14.3759 21.6596 14.3759 21.3059C14.3759 10.3289 12 1.49902 12 1.49902Z" fill="url(#geminiGradient)"/>
+    </svg>`;
 
 let ChatInput = ""; // Global variable to hold the rewritten text
 let typingTimer;
 let currentDraft = "";
 let currentSuggestion = "";
 let suggestionElement = null;
+let suggestionLoading = false;
 let isSuggestionDisplayed = false;
+
 let apiState = {
     apiKey: null,
     writingTone: 'professional'
@@ -57,7 +79,7 @@ User's Draft: "${draft}"`;
         if (!response.ok) throw new Error(`API error: ${response.status}`);
         const result = await response.json();
         const suggestionText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-        console.log("DEBUG: Raw suggestion from API:", `"${suggestionText}"`);
+        console.log(`DEBUG: Raw suggestion from API: "${suggestionText}"`);
         return suggestionText;
     } catch (error) {
         console.error("Gemini API Error:", error);
@@ -99,7 +121,7 @@ User's sentence: "${draft}"`;
         if (!response.ok) throw new Error(`API error: ${response.status}`);
         const result = await response.json();
         const suggestionText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-        console.log("DEBUG: Raw suggestion from API:", `"${suggestionText}"`);
+        console.log(`DEBUG: Raw suggestion from API: "${suggestionText}"`);
         return suggestionText;
     } catch (error) {
         console.error("Gemini API Error:", error);
@@ -120,6 +142,46 @@ function getConversationHistory() {
     });
     console.log("DEBUG: Captured conversation history:", history);
     return history.slice(-10);
+}
+
+// Inject minimal styles for spinner animation and ghost appearance
+function ensureStyles() {
+    if (document.getElementById('chat-catalyst-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'chat-catalyst-styles';
+    style.textContent = `
+        /* Spinner Rotation Animation */
+        @keyframes cc-rotate { 
+            from { transform: rotate(0deg); } 
+            to { transform: rotate(360deg); } 
+        }
+        
+        /* Apply rotation to the spinner SVG when its parent button has this class */
+        .cc-spinner-active svg {
+            animation: cc-rotate 1s linear infinite;
+        }
+
+        /* Ghost Text Loading Dots: "Wave" Animation */
+        @keyframes cc-wave {
+            0%, 60%, 100% { transform: initial; }
+            30% { transform: translateY(-6px); }
+        }
+
+        .cc-ellipsis { display: inline-block; }
+        .cc-dot { 
+            display: inline-block; 
+            width: 4px; height: 4px; 
+            margin: 0 1px; 
+            border-radius: 50%; 
+            background: currentColor; 
+            opacity: 0.6;
+        }
+        
+        .cc-loading .cc-dot { animation: cc-wave 1.3s ease-in-out infinite; }
+        .cc-loading .cc-dot:nth-child(2) { animation-delay: -1.1s; }
+        .cc-loading .cc-dot:nth-child(3) { animation-delay: -0.9s; }
+    `;
+    document.head.appendChild(style);
 }
 
 // --- DOM MANIPULATION (Mostly Unchanged) ---
@@ -166,14 +228,26 @@ function updateSuggestionDOM(inputElement) {
     
     if (!shouldDisplay && currentSuggestion && !isError) { 
          console.log(`DEBUG: Suggestion HIDDEN. Reason: ${!isCompletion ? "Suggestion is not a completion." : "An unknown condition failed."} (Draft: "${currentDraft}", Suggestion: "${currentSuggestion}")`);
+         
     }
 
     if (shouldDisplay) {
         const completionText = currentSuggestion.substring(currentDraft.length);
         suggestionElement.innerHTML = `<span style="color: transparent;">${currentDraft}</span><span style="opacity: 0.6;">${completionText}</span>`;
         isSuggestionDisplayed = true;
+        // Stop loading animation when a real suggestion is shown
+        suggestionElement.classList.remove('cc-loading');
     } else {
         suggestionElement.textContent = "";
+        isSuggestionDisplayed = false;
+        // If we are currently loading a suggestion, show the animated ellipsis after the draft
+        if (currentDraft && suggestionLoading) {
+            suggestionElement.innerHTML = `<span style="color: transparent;">${currentDraft}</span><span class="cc-ellipsis"><span class="cc-dot"></span><span class="cc-dot"></span><span class="cc-dot"></span></span>`;
+            suggestionElement.classList.add('cc-loading');
+        } else {
+            suggestionElement.textContent = "";
+            suggestionElement.classList.remove('cc-loading');
+        }
         isSuggestionDisplayed = false;
     }
 }
@@ -184,10 +258,14 @@ function handleInput(event) {
     clearTimeout(typingTimer);
     updateSuggestionDOM(event.target);
 
+  
     if (currentDraft.length < 3) return;
-
+     // start loading animation
+        suggestionLoading = true;
+        updateSuggestionDOM(event.target);
     typingTimer = setTimeout(async () => {
         const history = getConversationHistory();
+
         const suggestion = SuggestionsEnabled ? await fetchSuggestion(currentDraft, history, apiState.writingTone, apiState.apiKey) : "";
         
         if (event.target.textContent.trim() === currentDraft) {
@@ -204,6 +282,27 @@ function handleKeydown(event) {
         document.execCommand('insertText', false, completionText);
         currentSuggestion = "";
         isSuggestionDisplayed = false;
+        // IMPORTANT: Reset loading flag when suggestion is accepted
+        suggestionLoading = false; 
+        updateSuggestionDOM(event.target);
+    }
+    
+    // Check for Backspace key
+    if(event.key === 'Backspace'){ 
+        // 1. Clear any active suggestion/ghost text
+        currentSuggestion = "";
+        isSuggestionDisplayed = false;
+
+        // 2. CRITICAL FIX: Reset the loading flag to remove the dots/ellipsis
+        suggestionLoading = false; 
+        
+        // 3. Clear suggestion DOM manually (optional, but good practice)
+        if (suggestionElement) {
+            suggestionElement.textContent = "";
+            suggestionElement.classList.remove('cc-loading');
+        }
+        
+        // 4. Update the DOM to reflect the changes (hides dots/ghost text)
         updateSuggestionDOM(event.target);
     }
 }
@@ -219,6 +318,7 @@ function EditInputText(Text) {
         // 4. Execute commands to replace the text
         document.execCommand('selectAll', false, null); // Selects all current text
         document.execCommand('insertText', false, Text); // Replaces the selection with "hello"
+   
     } else {
         console.log("The editor element was not found!");
         setTimeout(() => EditInputText(Text), 1000); // Retry after 1 second
@@ -254,27 +354,23 @@ function injectAiButton() {
 
     const aiButton = document.createElement('button');
     aiButton.id = AI_BUTTON_ID;
-    aiButton.className = micButton.className;
+    //aiButton.className = micButton.className;
     aiButton.setAttribute('aria-label', 'Chat Catalyst AI');
     aiButton.innerHTML = `
         <span aria-hidden="true" data-icon="sparkles">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="geminiGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#F3A37A"/>
-                        <stop offset="0.25" stop-color="#F3D65A"/>
-                        <stop offset="0.5" stop-color="#A5D6A7"/>
-                        <stop offset="0.75" stop-color="#4C8BF5"/>
-                        <stop offset="1" stop-color="#C58AF9"/>
-                    </linearGradient>
-                </defs>
-                <path d="M12 0C10.5 5.5 5.5 10.5 0 12C5.5 13.5 10.5 18.5 12 24C13.5 18.5 18.5 13.5 24 12C18.5 10.5 13.5 5.5 12 0Z" fill="url(#geminiGradient)"/>
-            </svg>
+            ${INITIAL_SPARKLES_SVG}
         </span>
     `;
 
+    aiButton.addEventListener('mouseover', () => {
+  aiButton.style.cursor = 'pointer';
+});
+
     aiButton.addEventListener('click', async () => {
         console.log("Chat Catalyst AI button clicked!");
+        const svgContainer = aiButton.querySelector('span[data-icon="sparkles"]');
+        
+
         const inputElement = document.querySelector(CHAT_INPUT_SELECTOR);
         if (!inputElement) {
             console.error("Rewrite Error: Could not find the chat input box.");
@@ -286,6 +382,21 @@ function injectAiButton() {
             console.log("Rewrite Info: Text box is empty. Nothing to rewrite.");
             return;
         }
+
+         // 1. Clear any pending API call/suggestion generation
+        clearTimeout(typingTimer);
+        
+        // 2. Clear ghost text state and hide suggestion element
+        currentSuggestion = "";
+        isSuggestionDisplayed = false;
+        if (suggestionElement) {
+            suggestionElement.textContent = "";
+        }
+         // 1. SET LOADING ICON
+        if (svgContainer) {
+            svgContainer.innerHTML = LOADING_SPINNER_SVG; // Use the constant defined above
+        }
+        
 
         console.log(`Attempting to rewrite: "${textToRewrite}"`);
         inputElement.textContent = 'Rewriting...';
@@ -305,6 +416,7 @@ function injectAiButton() {
                     document.execCommand('insertText', false, textToRewrite.split(" ")[0]); // Insert first word to retain cursor position
                     document.execCommand('selectAll', false, null);
                     document.execCommand('insertText', false, " " +rewritten.split(' ').slice(1).join(' ')); // Insert rest of the text
+
                 }
             } else {
                 console.error("Rewrite Error: API returned an error or empty response.");
@@ -314,10 +426,29 @@ function injectAiButton() {
             console.error("A critical error occurred during the rewrite API call:", error);
             inputElement.textContent = textToRewrite;
         }
+         // 3. SWAP ICON BACK
+        if (svgContainer) {
+            svgContainer.innerHTML = INITIAL_SPARKLES_SVG;
+            console.log("Icon swapped back to sparkles.");
+        }
+        suggestionLoading=false;
+
+        // Trigger the 'input' handler again on the new text to start the debounce/suggestion cycle
+        const event = new Event('input', { bubbles: true });
+        inputElement.dispatchEvent(event);
+       
+        
     });
     
     // MODIFIED: This is the correct way to insert the button next to the mic button.
-    buttonContainer.prepend(aiButton);
+    //buttonContainer.parentElement.parentElement.parentElement.append(aiButton);
+    const parent = buttonContainer.parentElement.parentElement.parentElement;
+
+    // 2. Check if the parent exists to avoid errors
+    if (parent) {
+        // 3. Insert the aiButton right before the current last element
+        parent.insertBefore(aiButton, parent.lastElementChild);
+    }
 }
 
 
@@ -326,6 +457,7 @@ function injectAiButton() {
 // MODIFIED: The observer now handles both initializing the assistant AND injecting the button.
 function initializeUI() {
     console.log("Chat Catalyst: Observer initialized. Watching for UI elements...");
+    ensureStyles();
     const observer = new MutationObserver((mutations, obs) => {
         // --- Part 1: Handle the text input field for suggestions ---
         const inputElement = document.querySelector(CHAT_INPUT_SELECTOR);
