@@ -4,198 +4,359 @@
 <head>
     <meta charset="UTF-8">
     <title>Chat Catalyst Settings</title>
-    <link rel="stylesheet" href="styles.css">
     <style>
-        /* Import Inter font */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        /* Apply overall body styles with a subtle gradient */
-        body {
-            width: 320px;
-            font-family: 'Inter', sans-serif;
-            /* NEW: Subtle gradient background */
-            background: linear-gradient(170deg, #f7f9fc 0%, #f3f4f6 100%);
-            margin: 0;
-            padding: 12px;
-        }
+/* --- Base, Variables & Keyframes --- */
+:root {
+    --brand-color-primary: #10B981;
+    --brand-color-secondary: #059669;
+    --brand-color-glow: rgba(16, 185, 129, 0.5);
+    --accent-color: #8b5cf6; /* Added a new accent color */
 
-        /* Container Card with enhanced shadow */
-        .card {
-            padding: 24px;
-            background-color: white;
-            /* NEW: Softer, more pronounced shadow */
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-        }
+    --text-color-primary: #111827;
+    --text-color-secondary: #4b5563;
+    --surface-color: rgba(255, 255, 255, 0.6); /* For glass effect */
+    --border-color: rgba(229, 231, 235, 0.8);
+    --border-radius-lg: 16px; /* Larger radius for a softer look */
+    --border-radius-md: 10px;
 
-        /* Header with a gradient divider */
-        .header-content {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 24px;
-            /* NEW: Gradient border */
-            border-bottom: 2px solid;
-            border-image-slice: 1;
-            border-image-source: linear-gradient(to right, #10B981, rgba(16, 185, 129, 0));
-            padding-bottom: 16px;
-        }
+    --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.07);
+    --shadow-focus: 0 0 0 3px var(--brand-color-glow);
 
-        .header-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #1f2937;
-        }
+    --transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
 
-        .icon-emerald {
-            height: 24px;
-            width: 24px;
-            color: #059669;
-        }
+@keyframes aurora {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
-        /* Labels */
-        label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 4px;
-        }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-        /* Input and Select Fields */
-        .form-field {
-            box-sizing: border-box;
-            display: block;
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-            box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-            font-size: 0.875rem;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            margin-top: 4px;
-            background-color: #f9fafb;
-        }
+/* --- Overall Body Styles --- */
+body {
+    width: 350px;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-color-primary);
+    margin: 0;
+    padding: 24px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 
-        .form-field::placeholder {
-            color: #9ca3af;
-        }
+    /* CHANGED: Swapped static gradient for a dynamic, animated aurora background */
+    background: linear-gradient(125deg, #eef2ff, #f3e8ff, #dbeafe, #e0f2fe);
+    background-size: 400% 400%;
+    animation: aurora 16s ease infinite;
+}
 
-        .form-field:focus {
-            outline: none;
-            border-color: #10B981;
-            /* NEW: Softer glow effect */
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25), inset 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-        }
+/* --- Container Card (Now with Glassmorphism) --- */
+.card {
+    padding: 24px;
+    background: var(--surface-color);
+    backdrop-filter: blur(12px); /* The key to the glass effect */
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: fadeIn 0.5s var(--transition-smooth) forwards;
+}
 
-        /* Select Field Arrow Styling */
-        #toneSelect {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 10l5 5 5-5H7z' fill='%236B7280'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 1.5em 1.5em;
-        }
+/* --- Header --- */
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
 
-        /* --- Save Button Overhaul --- */
-        #saveButton {
-            cursor: pointer;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            /* Space between icon and text */
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 700;
-            color: white;
-            border: none;
-            margin-top: 24px;
+.header-title {
+    font-size: 1.25rem; /* 20px */
+    font-weight: 700;
+    color: var(--text-color-primary);
+    letter-spacing: -0.5px; /* Tighter letter spacing for headings */
+}
 
-            /* NEW: Gradient Background and setup for animation */
-            background-image: linear-gradient(to right, #10B981 0%, #059669 50%, #10B981 100%);
-            background-size: 200% auto;
-            background-position: right center;
-            /* Start from the right */
+.icon-header {
+    height: 32px;
+    width: 32px;
+    color: var(--brand-color-primary);
+    stroke-width: 1.5;
+}
 
-            /* NEW: Enhanced transitions for all properties */
-            transition: background-position 0.3s cubic-bezier(.25, .8, .25, 1),
-                transform 0.2s cubic-bezier(.25, .8, .25, 1),
-                box-shadow 0.3s cubic-bezier(.25, .8, .25, 1);
+/* --- Setup Instructions (Accordion) with Smooth Animation --- */
+.setup-instructions {
+    background-color: rgba(249, 250, 251, 0.7);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    margin-bottom: 24px;
+    transition: all var(--transition-smooth);
+    overflow: hidden; /* Important for smooth animation */
+}
 
-            box-shadow: 0 4px 10px -2px rgba(5, 150, 105, 0.4);
-        }
+.setup-instructions summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-color-secondary);
+    cursor: pointer;
+    list-style: none;
+    transition: background-color 0.2s ease;
+}
 
-        #saveButton:hover {
-            /* NEW: Animate gradient to the left and lift the button */
-            background-position: left center;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px -3px rgba(5, 150, 105, 0.5);
-        }
+.setup-instructions summary:hover {
+    background-color: rgba(243, 244, 246, 0.9);
+}
 
-        #saveButton:active {
-            /* NEW: Press-down effect */
-            transform: translateY(0px);
-            box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.2);
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
-        }
+.setup-instructions summary::-webkit-details-marker { display: none; }
 
-        #saveButton:focus {
-            outline: 3px solid #6ee7b7;
-            outline-offset: 3px;
-        }
+.setup-instructions summary::after {
+    content: '›';
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 1;
+    transform: rotate(90deg);
+    transition: transform var(--transition-smooth);
+    color: var(--text-color-secondary);
+}
 
-        /* Small Text */
-        .small-text {
-            font-size: 0.75rem;
-            color: #6b7280;
-            margin-top: 6px;
-        }
+.setup-instructions[open] summary::after {
+    transform: rotate(270deg);
+}
 
-        /* Status Message */
-        #statusMessage {
-            margin-bottom: 16px;
-            padding: 12px;
-            font-size: 0.875rem;
-            border-radius: 6px;
-            font-weight: 500;
-            border-left: 5px solid;
-            background-color: #ecfdf5;
-            color: #065f46;
-            border-color: #10B981;
-            transition: opacity 0.3s;
-        }
+.setup-instructions[open] { border-color: #d1d5db; }
+
+/* CHANGED: Smoothly animated content visibility */
+.instructions-content {
+    padding: 0 16px;
+    border-top: 1px solid var(--border-color);
+    display: grid;
+    grid-template-rows: 0fr; /* Start collapsed */
+    transition: grid-template-rows var(--transition-smooth);
+}
+
+.setup-instructions[open] .instructions-content {
+    grid-template-rows: 1fr; /* Expand to full height */
+    padding-bottom: 16px;
+}
+
+.instructions-content ol {
+    overflow: hidden; /* Prevents content spill during animation */
+    font-size: 0.875rem;
+    color: var(--text-color-secondary);
+    padding-left: 20px;
+    margin: 16px 0 0 0;
+    line-height: 1.7;
+}
+
+.instructions-content a {
+    color: var(--brand-color-secondary);
+    font-weight: 600;
+    text-decoration: none;
+    background-image: linear-gradient(var(--brand-color-secondary), var(--brand-color-secondary));
+    background-size: 0% 1px;
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    transition: background-size var(--transition-smooth);
+}
+
+.instructions-content a:hover {
+    color: #047857;
+    background-size: 100% 1px;
+}
+
+/* --- Form Fields with Enhanced Focus & Interaction --- */
+label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-color-primary);
+    margin-bottom: 8px;
+}
+
+.input-wrapper {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: #9ca3af;
+    transition: color 0.2s ease;
+}
+
+.form-field {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    font-size: 0.875rem;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#apiKey.form-field { padding-left: 40px; }
+
+.form-field::placeholder { color: #9ca3af; }
+
+.form-field:focus {
+    outline: none;
+    border-color: var(--brand-color-primary);
+    box-shadow: var(--shadow-focus);
+}
+
+.form-field:focus ~ .input-icon {
+    color: var(--brand-color-primary);
+}
+
+/* --- Custom Select Arrow --- */
+#toneSelect {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    background-size: 1.25em 1.25em;
+    padding-right: 2.5rem;
+}
+
+/* --- Hyper-Styled Save Button --- */
+#saveButton {
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--border-radius-md);
+    font-size: 0.925rem;
+    font-weight: 600;
+    color: white;
+    border: none;
+    margin-top: 24px;
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0); /* Promotes to its own compositing layer for smoother animations */
+    background: linear-gradient(45deg, var(--brand-color-secondary), var(--brand-color-primary));
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#saveButton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left var(--transition-smooth);
+}
+
+#saveButton:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 15px -3px var(--brand-color-glow);
+}
+
+#saveButton:hover::before {
+    left: 100%; /* Creates a "shine" effect on hover */
+}
+
+#saveButton:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px -2px var(--brand-color-glow);
+}
+
+#saveButton:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+}
+
+/* --- Helper & Status --- */
+.small-text {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-color-secondary);
+    margin-top: 12px;
+}
+
+#statusMessage {
+    display: flex; /* Aligns icon and text */
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 12px;
+    font-size: 0.875rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-left: 4px solid var(--brand-color-primary);
+    background-color: rgba(236, 253, 245, 0.8);
+    color: #065f46;
+    animation: fadeIn 0.3s ease-out;
+}
     </style>
 </head>
 
 <body>
     <div class="card">
-
         <div class="header-content">
-            <svg xmlns="http://www.w3.org/2000/svg" class="icon-emerald" fill="none" viewBox="0 0 24 24"
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon-header" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v10m0 0l-3-3m3 3l3-3" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <h2 class="header-title">Chat Catalyst Setup</h2>
+            <h2 class="header-title">Chat Catalyst Settings</h2>
         </div>
 
         <div id="statusMessage" style="display: none;"></div>
 
-        <label for="apiKey">Gemini API Key</label>
-        <input type="password" id="apiKey" placeholder="Paste your key here" class="form-field" autocomplete="off">
-        <p class="small-text">Your key is encrypted and stored locally.</p>
+        <details class="setup-instructions">
+            <summary>How to get your API Key</summary>
+            <div class="instructions-content">
+                <ol>
+                    <li>Go to <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>.</li>
+                    <li>Click <strong>"Get API key"</strong> in the top left.</li>
+                    <li>Click <strong>"Create API key in new project"</strong>.</li>
+                    <li>Copy your key and paste it below.</li>
+                </ol>
+            </div>
+        </details>
 
-        <label for="toneSelect" style="margin-top: 16px;">Default Writing Tone</label>
+        <label for="apiKey">Gemini API Key</label>
+        <div class="input-wrapper">
+             <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+            </svg>
+            <input type="password" id="apiKey" placeholder="Paste your secure key here" class="form-field" autocomplete="off">
+        </div>
+        <p class="small-text">Your key is always stored securely in your browser.</p>
+
+        <label for="toneSelect" style="margin-top: 20px;">Default Writing Tone</label>
         <select id="toneSelect" class="form-field">
-            <option value="professional">💼 Professional (Work)</option>
-            <option value="academic">🎓 Academic (Formal)</option>
-            <option value="casual">💬 Casual (Friendly)</option>
-            <option value="empathetic">❤️ Empathetic (Sensitive)</option>
+            <option value="professional">💼 Professional</option>
+            <option value="academic">🎓 Academic</option>
+            <option value="casual">💬 Casual</option>
+            <option value="empathetic">❤️ Empathetic</option>
         </select>
 
         <button id="saveButton">
