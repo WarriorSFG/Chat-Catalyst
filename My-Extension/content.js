@@ -70,7 +70,7 @@ User's Draft: "${draft}"`;
         return "Error fetching suggestion.";
     }
 }
-
+ //.  rewrite the suggestions
 async function fetchRewriteSuggestions(draft, history, tone, apiKey) {
     if (!apiKey) return [];
     const contextText = history.map(msg => `${msg.role}: ${msg.text}`).join('\n');
