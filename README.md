@@ -1,53 +1,70 @@
-# Chat-Catalyst
 
+#  Chat Catalyst
 Real-time, context-aware AI writing assistance directly inside your chat box.
 
-Chat Catalyst is a lightweight Chrome extension that delivers real-time, context-aware AI writing assistance directly inside your chat box. With a footprint of under 1MB, it integrates seamlessly into your workflow without compromising speed or performance. It enables faster, clearer, and better-toned communication without interrupting your typing flow. Powered by the Gemini 2.5 Flash model, it provides near-instant text completions and intelligent rewrites while maintaining a secure, privacy-first experience.
+---
 
- #The Problem
-Users often face difficulty composing messages that are clear, well-toned, and contextually appropriate. Existing AI tools require switching between apps, which breaks the natural chat flow. Chat Catalyst bridges this gap by providing faster, privacy-focused, inline assistance while you type.
+##  Overview
+Chat Catalyst is a lightweight Chrome extension that delivers real-time, context-aware AI writing assistance directly inside your chat box. With a footprint of **under 1MB**, it integrates seamlessly into your workflow without compromising speed or performance.
 
- #Core Features
- Ghost Text Autocomplete: Familiar to Gmail users, this feature provides inline suggestions as you type; simply press the "Tab" key to accept.
+It enables faster, clearer, and better-toned communication without interrupting your typing flow. Powered by the Gemini 2.5 Flash model, it provides near-instant text completions and intelligent rewrites while maintaining a secure, privacy-first experience.
 
- Live Rewrite Button: A brightly colored button placed at the start of the text box provides easy visibility and avoids interference with WhatsApp's native buttons.
+---
 
- Dynamic Tone Control: Seamlessly switch between 4 available tones—Professional, Academic, Casual, and Empathetic—without leaving the chat.
+##  The Problem
+Users often struggle to compose messages that are clear, well-toned, and contextually appropriate. Existing AI tools require switching between apps, which breaks the natural chat flow.
 
+Chat Catalyst solves this by providing fast, privacy-focused, inline assistance—right where you type.
 
- Context Awareness: The extension reads the last 10 messages in the conversation to ensure suggestions make sense and fit the ongoing chat.
+---
 
- #Security & Architecture
-Serverless Design: The extension is 100% client-side, operating without a central backend to maintain or scale.
+##  Core Features
 
+###  Ghost Text Autocomplete
+Get real-time inline suggestions as you type—just press **Tab** to accept and continue writing seamlessly.
 
-Data Privacy: User data and API keys are never transmitted to any third-party servers. All communication is a direct, secure HTTPS request to the official Google Gemini API.
+###  Live Rewrite Button
+A visible, non-intrusive button inside the text box lets you instantly rewrite messages without interfering with platform UI (e.g., WhatsApp).
 
+###  Dynamic Tone Control
+Switch between **Professional, Academic, Casual, and Empathetic** tones without leaving the chat.
 
-Local Encryption: Your API key is encrypted locally using the AES-GCM algorithm. The master encryption key is securely derived from the unique browser extension ID, utilizing a random 12-byte IV to ensure uniqueness.
+###  Context Awareness
+Analyzes the last 10 messages in the conversation to generate relevant and contextually accurate suggestions.
 
+---
 
-Cost Management: To reduce unnecessary token usage, the extension utilizes input debouncing—waiting for the user to stop typing before triggering an API call.
+##  Security & Architecture
 
+###  Serverless Design
+Fully client-side architecture with no central backend, ensuring scalability and zero server dependency.
 
- #Installation & Setup
-Download the Repository: Clone or download the Chat Catalyst source code to your local machine.
+###  Data Privacy
+User data and API keys are never sent to third-party servers. All communication is a direct, secure HTTPS request to the official API.
 
-Open Chrome Extensions: Navigate to chrome://extensions/ in your Chrome browser.
+###  Local Encryption
+API keys are encrypted locally using **AES-GCM**, with a master key derived from the browser extension ID and a random 12-byte IV.
 
-Enable Developer Mode: Toggle the "Developer mode" switch in the top right corner.
+###  Cost Management
+Implements input debouncing to minimize unnecessary API calls and reduce token usage.
 
-Load Unpacked: Click "Load unpacked" and select the folder containing your extension files.
+---
 
-Get Your API Key: Go to Google AI Studio to get your API key.
+##  Installation & Setup
 
-Configure: Open the Chat Catalyst Settings panel, enter your API key, change your default tone, and hit save.
+1. Clone or download this repository  
+2. Go to `chrome://extensions/`  
+3. Enable **Developer Mode** (top right)  
+4. Click **Load Unpacked** and select the project folder  
+5. Get your API key from Google AI Studio  
+6. Open settings → paste API key → Save  
 
+---
 
- #Future Roadmap
-Platform Expansion: Extending the extension to support Gmail, LinkedIn, Twitter, and Google Docs by writing platform-specific content scripts.
+##  Future Roadmap
 
+-  **Platform Expansion**: Gmail, LinkedIn, Twitter, Google Docs  
+-  **Advanced Caching**: Instant responses for repeated prompts  
+-  **Cooldown System**: Prevent excessive API calls  
 
-Advanced Caching: Storing recent completions locally so repeated prompts are served instantly from the cache, further cutting token usage.
-
-Cooldown Implementation: Adding a short cooldown window between API calls to prevent rapid-fire requests.
+---
