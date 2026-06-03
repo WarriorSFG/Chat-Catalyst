@@ -186,4 +186,4 @@ chat-catalyst/
 
 **Chat Catalyst · InterIIT Bootcamp · 3rd Place 🏆**
 
-Built with ❤️ using Google Gemini 2.5 Flash & Chrome Extensions Manifest V3
+Built using Google Gemini 2.5 Flash & Chrome Extensions Manifest V3
